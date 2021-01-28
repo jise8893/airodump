@@ -7,4 +7,4 @@ IEEE802.11 - airodump
 <br>
 추후 멀티스레드 channel hoping 기능 추가
 <br>사용법
-( ex)  ./airmon wlan0 )
+( airmon wlan0 )
