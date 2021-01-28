@@ -17,12 +17,13 @@ public:
     Mac address_3; // bssid address
     uint16_t sequence_control;
 
-    unsigned char timestamp[8];
-    uint16_t beacon_intervals;
-    uint32_t capability_information;
+    uint8_t timestamp[8];
 
-    uint8_t ssid_param:4;
-    uint8_t tag_length:4;
+    uint16_t beacon_intervals;
+    uint16_t capability_information;
+
+    uint8_t ssid_param;
+    uint8_t tag_length;
 
 };
 #pragma pack(pop)

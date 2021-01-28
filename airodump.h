@@ -11,6 +11,7 @@ class airodump{
 public:
     uint8_t beacons;
     uint8_t pwr;
-    unsigned char essid[256];
+    uint8_t essid[256]={0,};
+    uint8_t len=0;
 };
 #pragma pack(pop)

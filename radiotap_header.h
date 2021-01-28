@@ -13,7 +13,7 @@ public:
     uint8_t datarate;
     uint16_t channel_frequency;
     uint16_t channel_flags;
-    uint8_t antenna_signal; //-256+x
+    uint8_t antenna_signal;
     uint8_t antenna;
     uint16_t rxflags;
 };

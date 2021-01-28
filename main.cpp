@@ -21,8 +21,9 @@ void hextomac(uint8_t * address){
             printf(":");
         }
     }
-     printf("\n");
+
 }
+
 //beacons, pwr,essid
 void insert_container(std::map<class Mac,class airodump>& container,const u_char* packet){
     Ieee80211_radiotap_header * radiotab;
@@ -31,40 +32,40 @@ void insert_container(std::map<class Mac,class airodump>& container,const u_char
     radiotab=(Ieee80211_radiotap_header *)(packet);
 
     frame=(Dot11_frame *)(packet+radiotab->it_len);
-    if(frame->frame_control.type==0){ //CHECK management frame
-       auto bssid = container.find(frame->address_3);
+   if(frame->frame_control.subtype==0x0008){
+     for(auto bssid=container.begin(); bssid!=container.end(); bssid++){
+        if(memcmp(frame->address_3,bssid->first,6)==0)
+        {
+            bssid->second.pwr=256-radiotab->antenna_signal;
+            if(frame->frame_control.subtype==0x0008)
+                   bssid->second.beacons++;
+            return;
+            }
+     }
 
-       if(bssid!=container.end()){
-         bssid->second.pwr=256-radiotab->antenna_signal;
-         if(frame->frame_control.subtype==0x0008)
-                bssid->second.beacons++;
-
-       }else{
           airodump content;
           content.pwr=256-radiotab->antenna_signal;
-          content.beacons=0;
-          memcpy(content.essid,packet+sizeof(Dot11_frame)+radiotab->it_len+frame->tag_length,frame->tag_length);
-          if(frame->frame_control.subtype==0x0008)
-            bssid->second.beacons++;
-           container.emplace(frame->address_3,content);
+          content.beacons=1;
+          memcpy(content.essid, packet+sizeof(Dot11_frame)+radiotab->it_len, frame->tag_length);
+          content.len=frame->tag_length;
+          printf("size of dot 11 frame :%d itlen:%d tag_length:%d \n",sizeof(Dot11_frame),radiotab->it_len,frame->tag_length);
+          container.insert(std::make_pair(frame->address_3,content));
        }
-    }
-
-   // printf("pwr : [-%d]\n", 256-radiotab->antenna_signal);
-
 }
+
+
 template <typename K,typename V>
 void print_list(std::map<K,V>& container){
-    printf("BSSID \t\t ESSID \t\t PWR \t Beacons\n");
-    int p=0;
-    for(auto itr=container.begin(); itr!=container.end(); ++itr){
-       hextomac(itr->first);
 
-        fflush(stdout);
-        p++;
+    for(auto itr=container.begin(); itr!=container.end(); itr++){
+        hextomac(itr->first);
+        printf("\t pwr: -%d beacons: %d ESSID: ",256-itr->second.pwr,itr->second.beacons);
+        for(int i=0; i<itr->second.len; i++){
+            printf("%c",itr->second.essid[i]);
+        }
+        printf("\n");
     }
-    printf("\n count: %d\n",p);
-//    printf("\x1b[%dA",1+p);
+
 }
 
 
@@ -78,6 +79,7 @@ int main(int argc,char* argv[])
 
     std::map<class Mac,class airodump> container;
 
+
     if(argc!=2){
         usage();
         return -1;
@@ -87,14 +89,19 @@ int main(int argc,char* argv[])
         fprintf(stderr,"%s",errbuf);
     }
 
+
     while(true){
         int res=pcap_next_ex(handle,&header,&packet);
         if(res==0||res==-1||res==-2){
             continue;
         }
-     //   printf("Catched packet length [%d]\n",header->caplen);
+       // printf("Catched packet length [%d]\n",header->caplen);
         insert_container(container,packet);
+
+        printf("BSSID \t\t\t PWR \t   Beacons    ESSID \n\n");
         print_list(container);
+
+       printf("size:%d\n",container.size());
     }
 
     return 0;
