@@ -48,7 +48,7 @@ void insert_container(std::map<class Mac,class airodump>& container,const u_char
           content.beacons=1;
           memcpy(content.essid, packet+sizeof(Dot11_frame)+radiotab->it_len, frame->tag_length);
           content.len=frame->tag_length;
-          printf("size of dot 11 frame :%d itlen:%d tag_length:%d \n",sizeof(Dot11_frame),radiotab->it_len,frame->tag_length);
+
           container.insert(std::make_pair(frame->address_3,content));
        }
 }
@@ -59,7 +59,7 @@ void print_list(std::map<K,V>& container){
 
     for(auto itr=container.begin(); itr!=container.end(); itr++){
         hextomac(itr->first);
-        printf("\t pwr: -%d beacons: %d ESSID: ",256-itr->second.pwr,itr->second.beacons);
+        printf("\t pwr: -%d beacons: %d ESSID: ",itr->second.pwr,itr->second.beacons);
         for(int i=0; i<itr->second.len; i++){
             printf("%c",itr->second.essid[i]);
         }
