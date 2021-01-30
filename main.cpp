@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "dot11_frame.h"
 #include "airodump.h"
+#include "extended_radiotap.h"
 void usage(){
     printf("syntx  : airodump <interface>\n");
     printf("example: airodump wlan0\n");
@@ -30,13 +31,14 @@ void insert_container(std::map<class Mac,class airodump>& container,const u_char
     Dot11_frame * frame;
 
     radiotab=(Ieee80211_radiotap_header *)(packet);
+    Extended_radiotap *ext_radio=(Extended_radiotap*)(packet+radiotab->it_len-sizeof(Extended_radiotap));
 
     frame=(Dot11_frame *)(packet+radiotab->it_len);
    if(frame->frame_control.subtype==0x0008){
      for(auto bssid=container.begin(); bssid!=container.end(); bssid++){
         if(memcmp(frame->address_3,bssid->first,6)==0)
         {
-            bssid->second.pwr=256-radiotab->antenna_signal;
+            bssid->second.pwr=256-ext_radio->antenna_signal;
             if(frame->frame_control.subtype==0x0008)
                    bssid->second.beacons++;
             return;
@@ -44,7 +46,7 @@ void insert_container(std::map<class Mac,class airodump>& container,const u_char
      }
 
           airodump content;
-          content.pwr=256-radiotab->antenna_signal;
+          content.pwr=256-ext_radio->antenna_signal;
           content.beacons=1;
           memcpy(content.essid, packet+sizeof(Dot11_frame)+radiotab->it_len, frame->tag_length);
           content.len=frame->tag_length;

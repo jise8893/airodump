@@ -7,6 +7,7 @@ SOURCES += \
         main.cpp
 
 HEADERS += \
+    extended_radiotap.h \
     mac.h \
     radiotap_header.h \
     dot11_frame.h \
